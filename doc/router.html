@@ -16,7 +16,7 @@
 <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600' rel='stylesheet' type='text/css'/>
 
 <!-- CSS -->
-<title>blossom</title>
+<title>router</title>
 <style type="text/css" >
 /*
 Stylesheet for use with Docutils/rst2html.
@@ -787,7 +787,7 @@ function main() {
 <body onload="main()">
 <div class="document" id="documentId">
   <div class="container">
-    <h1 class="title">blossom</h1>
+    <h1 class="title">router</h1>
     <div class="row">
   <div class="three columns">
   <div id="global-links">
@@ -807,29 +807,27 @@ function main() {
   </div>
   <ul class="simple simple-toc" id="toc-list">
 <li>
-  <a class="reference reference-toplevel" href="#6" id="56">Imports</a>
-  <ul class="simple simple-toc-section">
-    
-  </ul>
-</li>
-<li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#Blossom"
-    title="Blossom = object
-  settings*: Settings
-  router*: Router
-  httpServer*: AsyncHttpServer"><wbr />Blossom<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#Route"
+    title="Route = object
+  path*: string
+  handler*: proc (req: Request): Future[void]"><wbr />Route<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#Router"
+    title="Router = object
+  routes*: seq[Route]"><wbr />Router<span class="attachedType"></span></a></li>
 
   </ul>
 </li>
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#initApp%2CSettings"
-    title="initApp(settings: Settings = newSettings()): Blossom"><wbr />init<wbr />App<span class="attachedType">Blossom</span></a></li>
-  <li><a class="reference" href="#serve%2CBlossom"
-    title="serve(self: var Blossom)"><wbr />serve<span class="attachedType">Blossom</span></a></li>
+      <li><a class="reference" href="#notFoundHandler%2CRequest"
+    title="notFoundHandler(req: Request): Future[void]"><wbr />not<wbr />Found<wbr />Handler<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#addRoute%2CRouter%2Cstring%2Cproc%28Request%29"
+    title="addRoute(self: var Router; path: string; handler: proc (req: Request): Future[void])"><wbr />add<wbr />Route<span class="attachedType">Router</span></a></li>
+  <li><a class="reference" href="#matchRoute%2CRouter%2Cstring"
+    title="matchRoute(self: Router; path: string): proc (req: Request): Future[void]"><wbr />match<wbr />Route<span class="attachedType">Router</span></a></li>
 
   </ul>
 </li>
@@ -840,26 +838,27 @@ function main() {
   <div class="nine columns" id="content">
   <div id="tocRoot"></div>
   
-  <p class="module-desc"><p>Copyright (C) 2019 Andrey Maksimov MIT License</p>
-<p>Blossom - minimalistic web framework. Largely inspired by Bottle (python) and Redstone (dart) and Jester (nim). </p>
-</p>
-  <div class="section" id="6">
-<h1><a class="toc-backref" href="#6">Imports</a></h1>
-<dl class="item">
-<a class="reference external" href="router.html">router</a>
-</dl></div>
-<div class="section" id="7">
+  <p class="module-desc"></p>
+  <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<a id="Blossom"></a>
-<dt><pre><a href="blossom.html#Blossom"><span class="Identifier">Blossom</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
-  <span class="Identifier">settings</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Settings</span>
-  <span class="Identifier">router</span><span class="Operator">*</span><span class="Other">:</span> <a href="router.html#Router"><span class="Identifier">Router</span></a>
-  <span class="Identifier">httpServer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">AsyncHttpServer</span>
+<a id="Route"></a>
+<dt><pre><a href="router.html#Route"><span class="Identifier">Route</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">path</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">string</span>
+  <span class="Identifier">handler</span><span class="Operator">*</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span>
 </pre></dt>
 <dd>
 
-This type contains a description of a Blossom web framework
+
+
+</dd>
+<a id="Router"></a>
+<dt><pre><a href="router.html#Router"><span class="Identifier">Router</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">routes</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><a href="router.html#Route"><span class="Identifier">Route</span></a><span class="Other">]</span>
+</pre></dt>
+<dd>
+
+Base Router object collects any routes that is handler by the app
 
 </dd>
 
@@ -867,20 +866,28 @@ This type contains a description of a Blossom web framework
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
-<a id="initApp,Settings"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#initApp%2CSettings"><span class="Identifier">initApp</span></a><span class="Other">(</span><span class="Identifier">settings</span><span class="Other">:</span> <span class="Identifier">Settings</span> <span class="Other">=</span> <span class="Identifier">newSettings</span><span class="Other">(</span><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <a href="blossom.html#Blossom"><span class="Identifier">Blossom</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="notFoundHandler,Request"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#notFoundHandler%2CRequest"><span class="Identifier">notFoundHandler</span></a><span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">FutureError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Initialize Blossom app by overriding default settings
+Default handler for Not found error
 
 </dd>
-<a id="serve,Blossom"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#serve%2CBlossom"><span class="Identifier">serve</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="blossom.html#Blossom"><span class="Identifier">Blossom</span></a><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">FutureError</span><span class="Other">,</span> <span class="Identifier">RegexError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span>
-                                    <span class="Identifier">UnpackError</span><span class="Other">,</span> <span class="Identifier">OSError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span>
-    <span class="Identifier">RootEffect</span><span class="Other">,</span> <span class="Identifier">WriteIOEffect</span><span class="Other">,</span> <span class="Identifier">ReadIOEffect</span><span class="Other">,</span> <span class="Identifier">TimeEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="addRoute,Router,string,proc(Request)"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#addRoute%2CRouter%2Cstring%2Cproc%28Request%29"><span class="Identifier">addRoute</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Keyword">var</span> <a href="router.html#Router"><span class="Identifier">Router</span></a><span class="Other">;</span> <span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span>
+             <span class="Identifier">handler</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
-Start an AsyncHttpServer and runs it till it stopped
+Add new route to <tt class="docutils literal"><span class="pre">Router</span></tt> and bind a function to it's URL
+
+</dd>
+<a id="matchRoute,Router,string"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#matchRoute%2CRouter%2Cstring"><span class="Identifier">matchRoute</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="router.html#Router"><span class="Identifier">Router</span></a><span class="Other">;</span> <span class="Identifier">path</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">req</span><span class="Other">:</span> <span class="Identifier">Request</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Future</span><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RegexError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Find Route for given <tt class="docutils literal"><span class="pre">path</span></tt> and return it's handler If no routes found return default 404 <tt class="docutils literal"><span class="pre">notFoundHandler</span></tt>
 
 </dd>
 
@@ -893,7 +900,7 @@ Start an AsyncHttpServer and runs it till it stopped
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2019-07-05 22:18:20 UTC</small>
+        <small>Made with Nim. Generated: 2019-07-05 22:18:26 UTC</small>
       </div>
     </div>
   </div>

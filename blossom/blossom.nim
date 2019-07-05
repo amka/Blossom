@@ -9,14 +9,12 @@ import asynchttpserver, asyncdispatch
 import logging
 import os
 import parseopt
+import sugar
 import strutils
 
+import ./router
 
-type
-    Route = object
-        rule*: string
-        handler*: proc(req: Request)
-
+        
 type
     Settings = object
         appName*: string
@@ -35,12 +33,13 @@ proc newSettings(port=Port(8080), appName="", bindAddr="", reusePort=false): Set
 type Blossom* = object
     ## This type contains a description of a Blossom web framework
     settings*: Settings
-    routes*: seq[Route]
+    router*: Router
     httpServer*: AsyncHttpServer
 
-
-proc handleRequest(Blossom: Blossom, req: Request): Future[void] =
-    req.respond(Http200, "OK")
+proc handleRequest(self: Blossom, req: Request): Future[void] =
+    # FIXME: procedure should be gcsafe
+    let handler = self.router.matchRoute(req.url.path)
+    return handler(req)
 
 proc initApp*(settings: Settings = newSettings()): Blossom =
     ## Initialize Blossom app by overriding default settings
@@ -72,14 +71,20 @@ proc serve*(self: var Blossom) =
     # Start the loop
     runForever()
 
-# proc add_route(self: Blossom, route: Route) =
-#     self.routes.add(route)
-
 
 proc main() =
     let port = paramStr(1).parseInt().Port
     let settings = newSettings(port=port)
     var blossom = initApp(settings)
+    blossom.router.addRoute("/", 
+        proc(req: Request): Future[void] = 
+            req.respond(Http200, "Blossom is gorgeous!")
+    )
+
+    blossom.router.addRoute("/sugar", (req: Request) =>
+        req.respond(Http200, "Sugar is sweet!")
+    )
+
     blossom.serve()
 
 
