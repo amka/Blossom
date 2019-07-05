@@ -35,10 +35,10 @@ when isMainModule:
 
 ## Roadmap
 
-[ ] Static routing
-[ ] Dynamic routing
-[ ] Templating
-[ ] Logging
+- [x] Static routing
+- [ ] Dynamic routing
+- [ ] Templating
+- [ ] Logging
 
 ## Icon
 
